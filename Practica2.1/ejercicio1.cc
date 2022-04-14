@@ -20,12 +20,12 @@ int main(int argc, char** argv){
         return -1;
     }
 
+    //Pasa por todos los resultados y escribe los valores en pantalla
     for(struct addrinfo* r = result; r != nullptr; r = r->ai_next){
         char host[NI_MAXHOST];
         char serv[NI_MAXSERV];
 
-        getnameinfo(r->ai_addr, r->ai_addrlen, host, NI_MAXHOST, serv, 
-        NI_MAXSERV, NI_NUMERICHOST);
+        getnameinfo(r->ai_addr, r->ai_addrlen, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST);
         std::cout << host << "\t" << r->ai_family << "\t" << r->ai_socktype << "\n";
     }
     return 0;
