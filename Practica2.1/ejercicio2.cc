@@ -48,13 +48,12 @@ int main(int argc, char** argv){
         getnameinfo((struct sockaddr *) &cliente, cliente_len, host, NI_MAXHOST,
                      serv, NI_MAXSERV, NI_NUMERICHOST|NI_NUMERICSERV);
 
-        if(buffer[1] == '\n'){
-            char tiempo[12];
+        std::cout << bytes << " bytes de " << host << ":" << serv << "\n";
 
-            std::cout << bytes << " bytes de " << host << ":" << serv << "\n";
+        char tiempo[12];
 
-            switch (buffer[0])
-            {
+        switch (buffer[0])
+        {
             case 't':
                 {
                 time_t tim;
@@ -77,16 +76,19 @@ int main(int argc, char** argv){
                 {
                 std::printf("Saliendo...");
                 connected = false;
+                char exit[12] = "Saliendo...";
+                sendto(sd, exit, sizeof(exit), 0, (struct sockaddr*) &cliente, cliente_len);
                 break;
                 }
             default:
                 {
-                std::printf("Comando no soportado: %s", buffer);
+                std::printf("Comando no soportado: %s\n", buffer);
+                char error[21] = "Comando no soportado";
+                sendto(sd, error, sizeof(error), 0, (struct sockaddr*) &cliente, cliente_len);
                 break;
                 }
-            }
         }
-        else std::printf("Comando no soportado: %s", buffer);
+    
     }
 
     close(sd);

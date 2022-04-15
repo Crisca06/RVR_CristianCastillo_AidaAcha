@@ -33,61 +33,22 @@ int main(int argc, char** argv){
 
 	freeaddrinfo(result);
 
-    bool connected = true;
-    while (connected) {
-        char buffer[80];
-        char host[NI_MAXHOST];
-        char serv[NI_MAXSERV];
-        struct sockaddr_in cliente;
-        socklen_t cliente_len = sizeof(struct sockaddr_in);
+    char buffer[80];
+    int s = sendto(sd, argv[3], strlen(argv[3]) + 1, 0, result->ai_addr, result->ai_addrlen);
 
-        ssize_t bytes = recvfrom(sd, buffer, 79, 0, (struct sockaddr *) &cliente,
-                        &cliente_len);
-        buffer[bytes]='\0'; 
-        
-        getnameinfo((struct sockaddr *) &cliente, cliente_len, host, NI_MAXHOST,
-                     serv, NI_MAXSERV, NI_NUMERICHOST|NI_NUMERICSERV);
+	if (s == -1) {
+		std::cerr << "ERROR en el sendto\n";
+		close(sd); return -1;
+	}
 
-        if(buffer[1] == '\n'){
-            char tiempo[12];
-
-            std::cout << bytes << " bytes de " << host << ":" << serv << "\n";
-
-            switch (buffer[0])
-            {
-            case 't':
-                {
-                time_t tim;
-                time(&tim);
-                tm* tiemp = localtime(&tim);
-                strftime(tiempo, sizeof(tiempo), "%r", tiemp);
-                sendto(sd, tiempo, sizeof(tiempo), 0, (struct sockaddr *) &cliente, cliente_len);
-                break;
-                }
-            case 'd':
-                {
-                time_t tim2;
-                time(&tim2);
-                tm* tiemp2 = localtime(&tim2);
-                strftime(tiempo, sizeof(tiempo), "%F", tiemp2);
-                sendto(sd, tiempo, sizeof(tiempo), 0, (struct sockaddr *) &cliente, cliente_len);
-                break;
-                }
-            case 'q':
-                {
-                std::printf("Saliendo...");
-                connected = false;
-                break;
-                }
-            default:
-                {
-                std::printf("Comando no soportado: %s", buffer);
-                break;
-                }
-            }
-        }
-        else std::printf("Comando no soportado: %s", buffer);
+    int r = recvfrom(sd, buffer, 79, 0, result->ai_addr, &result->ai_addrlen);
+    
+	if (r == -1) {
+		std::cerr << "ERROR en el recvfrom\n";      
+		close(sd); return -1;
     }
+
+	std::cout << buffer << "\n";
 
     close(sd);
     return 0;
