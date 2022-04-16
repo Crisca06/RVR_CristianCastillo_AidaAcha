@@ -25,7 +25,7 @@ int main(int argc, char** argv){
     }
 
     if(sd == -1){
-        std::cerr << "ERROR al crear el socket.\n";
+        std::cerr << "ERROR al crear el [socket].\n";
 		return -1;
     }
 
