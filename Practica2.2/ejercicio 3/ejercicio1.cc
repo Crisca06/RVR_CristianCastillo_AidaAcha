@@ -17,9 +17,9 @@ private:
 
     static const size_t MAX_NAME = 20;
 
+public:
     char name[MAX_NAME];
 
-public:
     Jugador(const char * _n, int16_t _x, int16_t _y): pos_x(_x), pos_y(_y)
     {
         strncpy(name, _n, MAX_NAME);
@@ -27,6 +27,9 @@ public:
 
     virtual ~Jugador(){};
 
+    //Copiamos el nombre a partir de la dirección marcada por aux,
+    //avanzamos hasta pasar dicho nombre y copiamos la posición x a
+    //partir de la direccion nueva de aux, y se hace lo mismo con la posición y.
     void to_bin()
     {
         _size = (sizeof(int16_t) * 2) + (sizeof(char) * MAX_NAME);
@@ -40,6 +43,7 @@ public:
         memcpy(aux, &pos_y, sizeof(int16_t));
         }
 
+    //Repetimos el mismo proceso copiando el archivo en la dirección data.
     int from_bin(char * data)
     {
         char* aux = data;
@@ -76,6 +80,23 @@ int main(int argc, char **argv)
     if(bytes != one_w.size()) std::cout << "ERROR: info is different.\n";
 
     close(fd);
+
+    // 3. Leer el fichero
+    fd = open("./Player_ONE.txt", O_RDONLY, 0666);
+    char buffer[bytes];
+
+    if (read(fd, &buffer, bytes) == -1) {
+	std::cerr << "ERROR: an error ocurred while reading file.\n";
+	return -1;
+    }
+
+    close(fd);
+
+    // 4. "Deserializar" en one_r
+    one_r.from_bin(buffer);
+
+    // 5. Mostrar el contenido de one_r
+    std::cout << "Nombre del jugador: " << one_r.name << " - Pos X: " << one_r.getX() << " - Pos Y: " << one_r.getY() << "\n";
 
     return 0;
 }
