@@ -74,7 +74,7 @@ void ChatServer::do_messages()
 		        ++it;
 
 	        if (it == clients.end())
-		        std::cout << "El jugador ya estaba desconectado\n";
+		        std::cout << "El jugador no estaba conectado\n";
 	        else {
 		        std::cout << "Jugador " << cm.nick << " desconectado\n";
                     clients.erase(it);
@@ -89,7 +89,7 @@ void ChatServer::do_messages()
 	        }
 	    break;
 	    default:
-	        std::cerr << "ERROR: mensaje desconocido\n";
+	        std::cerr << "ERROR: mensaje erroneo\n";
             break;
 	    }
     }

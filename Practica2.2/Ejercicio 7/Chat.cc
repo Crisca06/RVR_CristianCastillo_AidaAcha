@@ -74,7 +74,7 @@ void ChatServer::do_messages()
 		        ++it;
 
 	        if (it == clients.end())
-		        std::cout << "El jugador ya estaba desconectado\n";
+		        std::cout << "El jugador no estaba conectado\n";
 	        else {
 		        std::cout << "Jugador " << cm.nick << " desconectado\n";
                     clients.erase(it);
@@ -89,7 +89,7 @@ void ChatServer::do_messages()
 	        }
 	    break;
 	    default:
-	        std::cerr << "ERROR: mensaje desconocido\n";
+	        std::cerr << "ERROR: mensaje erroneo\n";
             break;
 	    }
     }
@@ -108,7 +108,15 @@ void ChatClient::login()
     socket.send(em, socket);
 }
 
-void ChatClient::logout() {}
+void ChatClient::logout() 
+{
+    std::string msg;
+
+    ChatMessage em(nick, msg);
+    em.type = ChatMessage::LOGOUT;
+
+    socket.send(em, socket);
+}
 
 
 void ChatClient::input_thread()
@@ -117,6 +125,15 @@ void ChatClient::input_thread()
     {
         // Leer stdin con std::getline
         // Enviar al servidor usando socket
+        std::string msg;
+        std::getline(std::cin, msg);
+
+	    if (msg.size() > 80)
+	        msg.resize(80);
+
+	    ChatMessage em(nick, msg);
+        em.type = ChatMessage::MESSAGE;
+	    socket.send(em, socket);
     }
 }
 
@@ -126,6 +143,9 @@ void ChatClient::net_thread()
     {
         //Recibir Mensajes de red
         //Mostrar en pantalla el mensaje de la forma "nick: mensaje"
+        ChatMessage em;
+	    socket.recv(em);
+	    std::cout << em.nick << ": " << em.message << "\n";
     }
 }
 
