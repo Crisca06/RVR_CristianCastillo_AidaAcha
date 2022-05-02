@@ -10,6 +10,15 @@ void ChatMessage::to_bin()
     memset(_data, 0, MESSAGE_SIZE);
 
     //Serializar los campos type, nick y message en el buffer _data
+
+    char* aux= _data;
+    memcpy (aux, &aux, sizeof(uint8_t));
+
+    aux += sizeof(uint8_t);
+    memcpy(aux, nick.c_str(), sizeof(char) * 8);
+
+    aux += sizeof(char) * 8;
+    memcpy(aux, message.c_str(), sizeof(char) * 80);
 }
 
 int ChatMessage::from_bin(char * bobj)
@@ -19,6 +28,14 @@ int ChatMessage::from_bin(char * bobj)
     memcpy(static_cast<void *>(_data), bobj, MESSAGE_SIZE);
 
     //Reconstruir la clase usando el buffer _data
+
+    char* aux = _data;
+    memcpy(&aux, aux, sizeof(uint8_t));
+    aux += sizeof(uint8_t);
+    
+    nick = aux;
+    aux += sizeof(char) * 8;
+    message = aux;
 
     return 0;
 }
@@ -56,10 +73,8 @@ void ChatClient::login()
     socket.send(em, socket);
 }
 
-void ChatClient::logout()
-{
-    // Completar
-}
+void ChatClient::logout() {}
+
 
 void ChatClient::input_thread()
 {
