@@ -13,13 +13,14 @@ void ChatMessage::to_bin()
     //Serializar los campos type, nick y message en el buffer _data
 
     char* aux= _data;
-    memcpy (aux, &aux, sizeof(uint8_t));
+    memcpy (aux, &type, sizeof(uint8_t));
 
     aux += sizeof(uint8_t);
     memcpy(aux, nick.c_str(), sizeof(char) * 8);
 
     aux += sizeof(char) * 8;
     memcpy(aux, message.c_str(), sizeof(char) * 80);
+    aux += sizeof(char) * 80;
 }
 
 int ChatMessage::from_bin(char * bobj)
@@ -31,12 +32,13 @@ int ChatMessage::from_bin(char * bobj)
     //Reconstruir la clase usando el buffer _data
 
     char* aux = _data;
-    memcpy(&aux, aux, sizeof(uint8_t));
+    memcpy(&type, aux, sizeof(uint8_t));
     aux += sizeof(uint8_t);
     
     nick = aux;
     aux += sizeof(char) * 8;
     message = aux;
+    aux += sizeof(char) * 80;
 
     return 0;
 }
@@ -64,11 +66,11 @@ void ChatServer::do_messages()
         socket.recv(cm, s);
 
         switch(cm.type) {
-	    case ChatMessage::LOGIN:
+	    case ChatMessage::LOGIN: {
 	        std::cout << "Jugador " << cm.nick << " conectado\n";
 	        clients.push_back(std::move(std::make_unique<Socket>(*s)));
-            break;
-	    case ChatMessage::LOGOUT:
+        } break;
+	    case ChatMessage::LOGOUT: {
 	        auto it = clients.begin();
 	        while (it != clients.end() && (**it != *s))
 		        ++it;
@@ -81,13 +83,13 @@ void ChatServer::do_messages()
 		        Socket *delSock = (*it).release();
 		        delete delSock; 
 	        }
-	        break;
-	    case ChatMessage::MESSAGE:
+        }    break;
+	    case ChatMessage::MESSAGE: {
 	        for (auto it = clients.begin(); it != clients.end(); it++) {
 		    if (**it !=  *s)
 		        socket.send(cm, **it);
 	        }
-	    break;
+        } break;
 	    default:
 	        std::cerr << "ERROR: mensaje erroneo\n";
             break;

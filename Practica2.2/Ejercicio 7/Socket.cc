@@ -1,5 +1,7 @@
 #include <string.h>
 
+#include <sys/socket.h>
+
 #include "Serializable.h"
 #include "Socket.h"
 
@@ -8,19 +10,19 @@ Socket::Socket(const char * address, const char * port):sd(-1)
     //Construir un socket de tipo AF_INET y SOCK_DGRAM usando getaddrinfo.
     //Con el resultado inicializar los miembros sd, sa y sa_len de la clase
 
-    struct addinfo h; 
-    struct addinfo* r; 
+    struct addrinfo h; 
+    struct addrinfo* res; 
 
-    memset((void *) &h, 0, sizeof(struct addinfo));
+    memset((void *) &h, 0, sizeof(struct addrinfo));
 
     //UDP
+    h.ai_flags = AI_PASSIVE;
     h.ai_family = AF_INET;
     h.ai_socktype = SOCK_DGRAM;
 
-    int rec = getaddrinfo(address, port, &h, &r);
+    int rec = getaddrinfo(address, port, &h, &res);
     if(rec != 0)
-        fprintf(stderr, "ERROR EN: [getaddrinfo]: " << 
-        gai_strerror(rec) << "\n");
+        std::cerr << gai_strerror(rec) << std::endl;
     
     sd = socket(res->ai_family, res->ai_socktype, 0);
     if(sd == -1)
@@ -66,11 +68,11 @@ int Socket::send(Serializable& obj, const Socket& sock)
 {
     //Serializar el objeto
 
-    obj.to_bin()
+    obj.to_bin();
 
     //Enviar el objeto binario a sock usando el socket sd
 
-    ssize_t bytes = sendto(sock.sd, obj.data(), obj.size(), 0, &sock, sa, sock.sa_len);
+    ssize_t bytes = sendto(sd, obj.data(), obj.size(), 0, &sock.sa, sock.sa_len);
     if(bytes < 1){
         std::cerr << "ERROR: fallo en el envio de mensajes \n";
         return -1;
@@ -87,7 +89,7 @@ bool operator== (const Socket &s1, const Socket &s2)
     //de la estructura sockaddr_in de los Sockets s1 y s2
     //Retornar false si alguno difiere
 
-    if(s1.sa.sa_family != s2.sa.sa_family || s1in->sin_addr.s_addr != s2in->sin_addr.s_addr ||
+    if(s1in->sin_family != s2in->sin_family || s1in->sin_addr.s_addr != s2in->sin_addr.s_addr ||
         s1in->sin_port != s2in->sin_port)
         return false;
     else return true;
