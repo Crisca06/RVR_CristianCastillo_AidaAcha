@@ -1,4 +1,5 @@
 #include "Chat.h"
+#include <memory.h>
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -57,6 +58,40 @@ void ChatServer::do_messages()
         // - LOGIN: Añadir al vector clients
         // - LOGOUT: Eliminar del vector clients
         // - MESSAGE: Reenviar el mensaje a todos los clientes (menos el emisor)
+    
+        ChatMessage cm;
+        Socket *s;
+        socket.recv(cm, s);
+
+        switch(cm.type) {
+	    case ChatMessage::LOGIN:
+	        std::cout << "Jugador " << cm.nick << " conectado\n";
+	        clients.push_back(std::move(std::make_unique<Socket>(*s)));
+            break;
+	    case ChatMessage::LOGOUT:
+	        auto it = clients.begin();
+	        while (it != clients.end() && (**it != *s))
+		        ++it;
+
+	        if (it == clients.end())
+		        std::cout << "El jugador ya estaba desconectado\n";
+	        else {
+		        std::cout << "Jugador " << cm.nick << " desconectado\n";
+                    clients.erase(it);
+		        Socket *delSock = (*it).release();
+		        delete delSock; 
+	        }
+	        break;
+	    case ChatMessage::MESSAGE:
+	        for (auto it = clients.begin(); it != clients.end(); it++) {
+		    if (**it !=  *s)
+		        socket.send(cm, **it);
+	        }
+	    break;
+	    default:
+	        std::cerr << "ERROR: mensaje desconocido\n";
+            break;
+	    }
     }
 }
 
